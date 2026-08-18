@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A searchable Wireshark display filter, capture filter, and troubleshooting recipe cheatsheet.">
+  <meta name="theme-color" content="#1976d2">
+  <title>Wireshark Filters</title>
+  <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./assets/styles.css">
+</head>
+<body>
+  <header class="appbar">
+    <div class="appbar__inner">
+      <div class="title-group">
+        <strong>Wireshark Filters</strong>
+        <span>Display, capture & troubleshooting filters</span>
+      </div>
+      <div class="appbar__meta"><span id="entryCount">0</span> entries</div>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="intro">
+      <p>Search, sort, and copy common Wireshark filters. Display filters and capture filters use different syntax, so they are kept separate.</p>
+    </section>
+
+    <section class="toolbar" aria-label="Table controls">
+      <div class="toolbar__row">
+        <div class="search-box">
+          <span class="search-icon" aria-hidden="true">⌕</span>
+          <input id="search" type="search" placeholder="Search filter, description, category, tag…" autocomplete="off">
+        </div>
+
+        <select id="modeFilter" aria-label="Filter by mode">
+          <option value="all">All types</option>
+          <option value="display">Display filters</option>
+          <option value="capture">Capture filters</option>
+          <option value="recipes">Recipes</option>
+        </select>
+
+        <select id="categoryFilter" aria-label="Filter by category">
+          <option value="all">All categories</option>
+        </select>
+
+        <button id="favoritesBtn" class="tool-btn" type="button" title="Show favorites">☆ Favorites</button>
+        <button id="addRowBtn" class="tool-btn" type="button" title="Add a custom filter row">＋ Add row</button>
+        <button id="columnsBtn" class="tool-btn" type="button" title="Arrange table columns">↔ Arrange columns</button>
+        <button id="columnFiltersBtn" class="icon-btn" type="button" title="Toggle column filters" aria-label="Toggle column filters">≡</button>
+        <button id="exportBtn" class="icon-btn" type="button" title="Export filtered rows as CSV" aria-label="Export filtered rows as CSV">⇩</button>
+        <button id="printBtn" class="icon-btn" type="button" title="Print" aria-label="Print">⎙</button>
+      </div>
+    </section>
+
+    <section class="table-shell">
+      <div class="table-scroll">
+        <table id="filterTable">
+          <thead id="tableHead"></thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+
+      <div id="emptyState" class="empty" hidden>No filters match the current search.</div>
+
+      <div class="table-footer">
+        <div id="statusText">0 rows</div>
+        <div class="pagination">
+          <label>
+            Rows per page
+            <select id="pageSize">
+              <option value="25">25</option>
+              <option value="50" selected>50</option>
+              <option value="100">100</option>
+              <option value="250">250</option>
+            </select>
+          </label>
+          <button id="prevPage" class="page-btn" type="button" aria-label="Previous page">‹</button>
+          <span id="pageText">1 / 1</span>
+          <button id="nextPage" class="page-btn" type="button" aria-label="Next page">›</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="notes">
+      <strong>Notes</strong>
+      <span>Click a column header to sort. Turn on <strong>Arrange columns</strong> and drag headers into any order; your layout is saved in this browser. Use <strong>＋ Add row</strong> for personal entries, or edit <code>data/filters.json</code> for permanent public data.</span>
+    </section>
+  </main>
+
+  <footer>
+    <span>Independent reference project. Wireshark is a trademark of the Wireshark Foundation.</span>
+    <span>
+      <a href="https://www.wireshark.org/docs/man-pages/wireshark-filter.html" target="_blank" rel="noreferrer">Display filter docs</a>
+      ·
+      <a href="https://www.wireshark.org/docs/man-pages/pcap-filter.html" target="_blank" rel="noreferrer">Capture filter docs</a>
+      ·
+      <a href="https://www.wireshark.org/docs/dfref/" target="_blank" rel="noreferrer">Field reference</a>
+    </span>
+  </footer>
+
+
+  <div id="addRowModal" class="modal-backdrop" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="addRowTitle">
+      <div class="modal__header">
+        <div>
+          <h2 id="addRowTitle">Add filter row</h2>
+          <p>Add a row to this browser. Public repo data still lives in <code>data/filters.json</code>.</p>
+        </div>
+        <button id="closeAddRow" class="icon-btn" type="button" aria-label="Close">×</button>
+      </div>
+
+      <form id="addRowForm" class="form-grid">
+        <label>
+          <span>Type</span>
+          <select id="newMode" required>
+            <option value="display">Display</option>
+            <option value="capture">Capture</option>
+            <option value="recipes">Recipe</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Category</span>
+          <input id="newCategory" value="Custom" required>
+        </label>
+
+        <label class="full">
+          <span>Title</span>
+          <input id="newTitle" placeholder="e.g. Production API resets" required>
+        </label>
+
+        <label class="full">
+          <span>Filter</span>
+          <input id="newCode" placeholder="tcp.flags.reset == 1" required>
+        </label>
+
+        <label class="full">
+          <span>Description</span>
+          <textarea id="newDescription" placeholder="What this filter is useful for…" required></textarea>
+        </label>
+
+        <label class="full">
+          <span>Tags <small>(comma separated)</small></span>
+          <input id="newTags" placeholder="tcp, reset, prod">
+        </label>
+
+        <div class="form-actions full">
+          <button id="cancelAddRow" class="tool-btn" type="button">Cancel</button>
+          <button class="tool-btn primary" type="submit">Add row</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status">Copied</div>
+
+  <script src="./data/filters.js"></script>
+  <script src="./assets/app.js"></script>
+</body>
+</html>
